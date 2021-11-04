@@ -112,6 +112,11 @@ int main(int argc, char* argv[]){
 			cout << "Item doesn't exist." << endl;
 		}
 		needsWritten = true;
+	} else if(command == "delete" && argc == 4){
+		if(argv[2] == "-i"){
+			//Delete item from list at index specified by next argument
+			cout << "Not implemented today :(" << endl;
+		}
 	} else if(command == "tick" && argc == 3){
 		//Tick the next argument
 		string item = argv[2];
