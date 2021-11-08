@@ -7,8 +7,10 @@
 
 using namespace std;
 
-// g++ -o todo.exe todo.cpp
+//The file storing the list items.
 const string FILE_NAME = "todo_data.txt";
+
+//The help menu, called with the '--help' command.
 const string HELP_TEXT = 
 "Available Commands:"
 "\n(no arguments)		Display the todo list."
@@ -23,6 +25,7 @@ const string HELP_TEXT =
 "\nclean			Remove all ticked items from the todo list."
 ;
 
+//Reads the list from file.
 map<string, bool> read(){
 	//First char of each line is 0 or 1 - bit value of checked
 	map<string, bool> list;
@@ -43,16 +46,21 @@ map<string, bool> read(){
 	return list;
 }
 
+//Writes the list to file
 void write(map<string, bool> &list){
 	fstream dataFile;
 	dataFile.open(FILE_NAME, ios::out);
 	if(dataFile.is_open()){
 		for(auto &item: list){
+			//Format 1foo\n0bar etc. for items foo (ticked) and bar (unticked)
 			dataFile << item.second << item.first << "\n";
 		}
 	}
 }
 
+//prints the provided list to the console,
+//adding in the number of each item for reference
+//with '-i' modifier
 void printList(map<string, bool> &list){
 	if(list.size() == 0){
 		cout << "Nothing on your todo list." << endl;
@@ -69,12 +77,17 @@ void printList(map<string, bool> &list){
 	}
 }
 
+//Gets the list item at the provided index
 string getItem(map<string, bool> &list, int index){
 	auto it = list.begin();
 	advance(it, index);
 	return it->first;
 }
 
+//Gets the list item at the provided index,
+//where a string has been provided.
+//(rather than parsing the input string into an int,
+//only to find that said int is out of range.)
 string getItem(map<string, bool> &list, string indexAsString){
 	for(int i = 1; i <= list.size(); i++){
 		if(indexAsString == to_string(i)){
@@ -85,10 +98,13 @@ string getItem(map<string, bool> &list, string indexAsString){
 	return "";
 }
 
+//Outputs the help menu
 void help(){
 	cout << HELP_TEXT << endl;
 }
 
+//Adds an item to the provided list,
+//given that it doesn't already exist.
 bool addItem(map<string, bool> &list, string item){
 	if(list.find(item) == list.end()){
 		list[item] = 0;
@@ -99,6 +115,7 @@ bool addItem(map<string, bool> &list, string item){
 	}
 }
 
+//Removes an item from the provided list.
 bool deleteItem(map<string, bool> &list, string item){
 	if(list.find(item) != list.end()){
 		list.erase(item);
@@ -109,6 +126,7 @@ bool deleteItem(map<string, bool> &list, string item){
 	}
 }
 
+//Ticks the provided list item.
 bool tickItem(map<string, bool> &list, string item){
 	if(list.find(item) != list.end()){
 		if(list[item] == 0){
@@ -123,6 +141,7 @@ bool tickItem(map<string, bool> &list, string item){
 	return false;
 }
 
+//Unticks the provided list item.
 bool untickItem(map<string, bool> &list, string item){
 	if(list.find(item) != list.end()){
 		if(list[item] == 1){
@@ -137,6 +156,8 @@ bool untickItem(map<string, bool> &list, string item){
 	return false;
 }
 
+//Cleans the list,
+//removing any ticked items.
 bool cleanList(map<string, bool> &list){
 	int itemsRemoved = 0;
 	for(auto &item : list){
