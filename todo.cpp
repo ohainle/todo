@@ -13,10 +13,13 @@ const string HELP_TEXT =
 "Available Commands:"
 "\n(no arguments)		Display the todo list."
 "\n--help			Show a list of available commands."
-"\nadd <item>		Add <item> to the todo list."
-"\nremove <item>		Remove <item> from the todo list."
-"\ntick <item>		Tick <item> on the todo list."
+"\nadd <item>			Add <item> to the todo list."
+"\ndelete <item>		Remove <item> from the todo list."
+"\ndelete -i <item_number>	Remove the item at the provided index."
+"\ntick <item>			Tick <item> on the todo list."
+"\ntick -i <item_number>	Tick the item at the provided index."
 "\nuntick <item>		Untick <item> on the todo list."
+"\nuntick -i <item_number>	Untick the item at the provided index."
 "\nclean			Remove all ticked items from the todo list."
 ;
 
@@ -72,6 +75,80 @@ string getItem(map<string, bool> &list, int index){
 	return it->first;
 }
 
+string getItem(map<string, bool> &list, string indexAsString){
+	for(int i = 1; i <= list.size(); i++){
+		if(indexAsString == to_string(i)){
+			return getItem(list, i - 1);
+		}	
+	}
+	cout << "No item exists of that number." << endl;
+	return "";
+}
+
+void help(){
+	cout << HELP_TEXT << endl;
+}
+
+bool addItem(map<string, bool> &list, string item){
+	if(list.find(item) == list.end()){
+		list[item] = 0;
+		return true;
+	} else {
+		cout << "Item already exists." << endl;
+		return false;
+	}
+}
+
+bool deleteItem(map<string, bool> &list, string item){
+	if(list.find(item) != list.end()){
+		list.erase(item);
+		return true;
+	} else {
+		cout << "Item doesn't exist." << endl;
+		return false;
+	}
+}
+
+bool tickItem(map<string, bool> &list, string item){
+	if(list.find(item) != list.end()){
+		if(list[item] == 0){
+			list[item] = 1;
+			return true;
+		} else {
+			cout << "Item already ticked." << endl;
+		}
+	} else {
+		cout << "Item doesn't exist." << endl;
+	}
+	return false;
+}
+
+bool untickItem(map<string, bool> &list, string item){
+	if(list.find(item) != list.end()){
+		if(list[item] == 1){
+			list[item] = 0;
+			return true;
+		} else {
+			cout << "Item not ticked yet." << endl;
+		}
+	} else {
+		cout << "Item doesn't exist." << endl;
+	}
+	return false;
+}
+
+bool cleanList(map<string, bool> &list){
+	int itemsRemoved = 0;
+	for(auto &item : list){
+		if(item.second == 1){
+			list.erase(item.first);
+			itemsRemoved++;
+		}
+	}
+	cout << to_string(itemsRemoved) << " item(s) removed." << endl;
+	return itemsRemoved != 0;
+}
+
 int main(int argc, char* argv[]){
 
 	//No command, so just display the current list
@@ -84,7 +161,7 @@ int main(int argc, char* argv[]){
 	string command = argv[1];
 	//Check for commands which don't need file access first
 	if(command == "--help"){
-		cout << HELP_TEXT << endl;
+		help();
 		exit(0);
 	}
 
@@ -95,63 +172,50 @@ int main(int argc, char* argv[]){
 	if(command == "add" && argc == 3){
 		//Add next argument to the list
 		string item = argv[2];
-
-		if(list.find(item) == list.end()){
-			list[item] = 0;
-			needsWritten = true;
-		} else {
-			cout << "Item already exists." << endl;
-		}
+		needsWritten = addItem(list, item);
 	} else if(command == "delete" && argc == 3){
 		//Delete next argument from the list
 		string item = argv[2];
-		if(list.find(item) != list.end()){
-			list.erase(item);
-			needsWritten = true;
-		} else {
-			cout << "Item doesn't exist." << endl;
-		}
-		needsWritten = true;
+		needsWritten = deleteItem(list, item);
 	} else if(command == "delete" && argc == 4){
-		if(argv[2] == "-i"){
+		string mod = argv[2];
+		if(mod == "-i"){
 			//Delete item from list at index specified by next argument
-			cout << "Not implemented today :(" << endl;
+			string index = argv[3];
+			string item = getItem(list, index);
+			if(item != ""){
+				needsWritten = deleteItem(list, item);	
+			}
 		}
 	} else if(command == "tick" && argc == 3){
 		//Tick the next argument
 		string item = argv[2];
-		if(list.find(item) != list.end()){
-			if(list[item] == 0){
-				list[item] = 1;
-				needsWritten = true;
-			} else {
-				cout << "Item already ticked." << endl;
+		needsWritten = tickItem(list, item);
+	} else if(command == "tick" && argc == 4){
+		string mod = argv[2];
+		if(mod == "-i"){
+			string index = argv[3];
+			string item = getItem(list, index);
+			if(item != ""){
+				needsWritten = tickItem(list, item);
 			}
-		} else {
-			cout << "Item doesn't exist." << endl;
 		}
 	} else if(command == "untick" && argc == 3){
 		//Untick the next argument
 		string item = argv[2];
-		if(list.find(item) != list.end()){
-			if(list[item] == 1){
-				list[item] = 0;
-				needsWritten = true;
-			} else {
-				cout << "Item not ticked yet." << endl;
+		needsWritten = untickItem(list, item);
+	} else if(command == "untick" && argc == 4){
+		string mod = argv[2];
+		if(mod == "-i"){
+			string index = argv[3];
+			string item = getItem(list, index);
+			if(item != ""){
+				needsWritten = untickItem(list, item);
 			}
-		} else {
-			cout << "Item doesn't exist." << endl;
 		}
 	} else if(command == "clean" && argc == 2){
 		//Remove all ticked items from the list
-		bool tickedItemFound = false;
-		for(auto &item : list){
-			if(item.second == 1){
-				list.erase(item.first);
-				needsWritten = true;
-			}
-		}
+		needsWritten = cleanList(list);
 	} else {
 		//Something went wrong
 		cout << "todo: command not recognised." << endl
